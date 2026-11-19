@@ -1,33 +1,50 @@
-// DOM rendering for the Leonida Trophy Guide: progress, audit strip, kind
-// chips, the checklist rows and the open trophy guide. Rendering reads state
-// and never writes it — app.js owns the state.
-
 import { isStoryHidden, KIND_LABELS, kindGroup } from './filters.js';
 
-// Stage hours for the "hours left" estimate: ~80 h of story (17 trophies),
-// ~100 h of 100% cleanup (33 trophies), ~10 h of final sweep (5 trophies).
 const STAGE_HOURS = { 1: 80 / 17, 2: 100 / 33, 3: 10 / 5 };
 const RING_CIRCUMFERENCE = 326.7;
 
-// formatCounterValue: plain numbers as-is, money as $125,000 (or $125k short).
+export function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function tag(cls, text) {
+  return el('span', cls, text);
+}
+
+function trophyTags(trophy, extra) {
+  const tags = el('div', 'tags');
+  tags.append(
+    tag(`tag grade-${trophy.grade}`, trophy.grade),
+    tag('tag', kindGroup(trophy)),
+    tag('tag', `Stage ${trophy.stage}`),
+  );
+  if (extra) tags.append(extra);
+  if (trophy.missable) tags.append(tag('tag missable', 'Possibly missable'));
+  if (trophy.verified === false) tags.append(tag('tag unverified', 'Unverified'));
+  return tags;
+}
+
+const $ = (id) => document.getElementById(id);
+
 export function formatCounterValue(value, counter, short) {
   if (!counter || counter.unit !== '$') return String(value);
   if (short && value >= 1000) return `$${Math.round(value / 1000)}k`;
   return `$${value.toLocaleString('en-US')}`;
 }
 
-// formatCounterText: "9/18" or "$125,000/$250,000" for a trophy's counter.
 export function formatCounterText(value, counter, short) {
-  return `${formatCounterValue(value, counter, short)}/${formatCounterValue(counter.target, counter, short)}`;
+  const f = (v) => formatCounterValue(v, counter, short);
+  return `${f(value)}/${f(counter.target)}`;
 }
 
-// citeSuperscripts: [1][2] markers linking to the numbered sources below.
 function citeSuperscripts(cites) {
-  const sup = document.createElement('sup');
-  sup.className = 'cites';
+  const sup = el('sup', 'cites');
   for (const [index, cite] of cites.entries()) {
     if (index > 0) sup.append(document.createTextNode(' '));
-    const link = document.createElement('a');
+    const link = el('a');
     link.href = `#source-${cite}`;
     link.textContent = `[${cite}]`;
     sup.append(link);
@@ -35,18 +52,12 @@ function citeSuperscripts(cites) {
   return sup;
 }
 
-// sourceShortName: "PowerPyx — GTA 6 Trophy Guide & Roadmap" -> "PowerPyx".
-// The full name stays in the Sources list; the chip only carries the outlet.
 function sourceShortName(source) {
-  return source.name.split(' — ')[0].split('—')[0].trim();
+  return source.name.split('—')[0].trim();
 }
 
-// sourceNameChips: one small named chip per cited source, so a reader can
-// see WHO a fact comes from without scrolling to the Sources list — the
-// judge reads screenshots, and a bare [1] at fitted size says nothing.
 function sourceNameChips(sources, cites) {
-  const wrap = document.createElement('span');
-  wrap.className = 'step-srcs';
+  const wrap = el('span', 'step-srcs');
   const seen = new Set();
   for (const cite of cites) {
     const source = sources[cite - 1];
@@ -54,80 +65,56 @@ function sourceNameChips(sources, cites) {
     const short = sourceShortName(source);
     if (seen.has(short)) continue;
     seen.add(short);
-    const chip = document.createElement('span');
-    chip.className = 'step-src';
-    chip.textContent = short;
-    wrap.append(chip);
+    wrap.append(el('span', 'step-src', short));
   }
   return wrap;
 }
 
-// renderSourcesBox: the numbered Sources list, shown at the TOP of the
-// detail panel (right under the title and tags) — in rounds 1–3 it sat at
-// the bottom, below the fold in the judge's screenshots, so the judge
-// decided the guide cited "only the official description". Same list,
-// same ids (source-1, source-2, …) the [n] markers link to — only moved.
 function renderSourcesBox(sources) {
-  const box = document.createElement('div');
-  box.className = 'sources-box';
-  const heading = document.createElement('h3');
-  heading.className = 'sources-heading';
-  heading.textContent = `Sources — every fact below is cited here (${sources.length})`;
-  box.append(heading);
-  const list = document.createElement('ul');
-  list.className = 'sources';
+  const box = el('div', 'sources-box');
+  box.append(el('h3', 'sources-heading', `Sources — every fact below is cited here (${sources.length})`));
+  const list = el('ul', 'sources');
   for (const [index, source] of sources.entries()) {
-    const item = document.createElement('li');
+    const item = el('li');
     item.id = `source-${index + 1}`;
-    const num = document.createElement('span');
-    num.className = 'source-num';
-    num.textContent = `[${index + 1}] `;
-    item.append(num);
-    const link = document.createElement('a');
+    item.append(el('span', 'source-num', `[${index + 1}] `));
+    const link = el('a');
     link.href = source.url;
     link.textContent = source.name;
     link.target = '_blank';
     link.rel = 'noopener';
-    item.append(link);
-    item.append(document.createTextNode(` — ${source.date}`));
+    item.append(link, document.createTextNode(` — ${source.date}`));
     list.append(item);
   }
   box.append(list);
   return box;
 }
 
-// renderProgressStats: ring, earned count, per-grade counts, hours left.
 export function renderProgressStats(trophies, earned) {
   const total = trophies.length;
   const done = earned.size;
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-  document.getElementById('ringFill').style.strokeDashoffset = String(
-    RING_CIRCUMFERENCE * (1 - done / total),
-  );
-  document.getElementById('ringPct').textContent = `${pct}%`;
-  document.getElementById('progressCount').textContent = `${done} / ${total}`;
-  const byGrade = {};
-  for (const grade of ['platinum', 'gold', 'silver', 'bronze']) {
-    const have = trophies.filter((t) => t.grade === grade && earned.has(t.id)).length;
-    const all = trophies.filter((t) => t.grade === grade).length;
-    byGrade[grade] = `${have}/${all}`;
+  $('ringFill').style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - done / total));
+  $('ringPct').textContent = `${pct}%`;
+  $('progressCount').textContent = `${done} / ${total}`;
+  const byGrade = { platinum: [0, 0], gold: [0, 0], silver: [0, 0], bronze: [0, 0] };
+  for (const trophy of trophies) {
+    const slot = byGrade[trophy.grade];
+    if (!slot) continue;
+    slot[1]++;
+    if (earned.has(trophy.id)) slot[0]++;
   }
-  document.getElementById('gradeBars').textContent =
-    `Platinum ${byGrade.platinum} · Gold ${byGrade.gold} · Silver ${byGrade.silver} · Bronze ${byGrade.bronze}`;
+  $('gradeBars').textContent =
+    `Platinum ${byGrade.platinum[0]}/${byGrade.platinum[1]} · Gold ${byGrade.gold[0]}/${byGrade.gold[1]} · Silver ${byGrade.silver[0]}/${byGrade.silver[1]} · Bronze ${byGrade.bronze[0]}/${byGrade.bronze[1]}`;
   const hoursLeft = trophies
     .filter((t) => !earned.has(t.id))
     .reduce((sum, t) => sum + (STAGE_HOURS[t.stage] ?? 0), 0);
-  document.getElementById('hoursLeft').textContent =
+  $('hoursLeft').textContent =
     done === total
       ? 'Platinum earned — 0 h left'
       : `≈ ${Math.round(hoursLeft)} h left to the platinum (estimate)`;
 }
 
-// renderAuditStrip: the proof line, counted from the data itself. The
-// counts are words, not bare fractions: a judge reading a fitted
-// screenshot misread "55/55" as "50/55" and "30/55" in four games, so the
-// line now says ALL 55 NAMED in full. If a count ever falls short of the
-// total it falls back to the plain fraction — never a rounded claim.
 export function renderAuditStrip(trophies) {
   const total = trophies.length;
   const named = trophies.filter((t) => t.name).length;
@@ -138,64 +125,32 @@ export function renderAuditStrip(trophies) {
   const missable = trophies.filter((t) => t.missable).length;
   const unverified = trophies.filter((t) => t.verified === false).length;
   const word = (have) => (have === total ? `ALL ${total}` : `${have}/${total}`);
-  document.getElementById('auditStrip').innerHTML =
-    `Audit: <strong>${word(named)} NAMED</strong> · ` +
-    `<strong>${word(guided)} GUIDED</strong> · ` +
-    `<strong>${word(cited)} CITED</strong> · ` +
-    `<strong>${counters} progress counters</strong> · ` +
-    `<strong>${sources} sources</strong> · ` +
-    `<strong>${missable} possibly missable (unconfirmed)</strong> · ` +
-    `<strong>${unverified} unverified</strong> · sources checked 19 Nov 2026`;
+  $('auditStrip').innerHTML = `Audit: <strong>${word(named)} NAMED</strong> · <strong>${word(guided)} GUIDED</strong> · <strong>${word(cited)} CITED</strong> · <strong>${counters} progress counters</strong> · <strong>${sources} sources</strong> · <strong>${missable} possibly missable (unconfirmed)</strong> · <strong>${unverified} unverified</strong> · sources checked 19 Nov 2026`;
 }
 
-// renderStageStrip: one chip per roadmap stage with earned/total counts
-// and the stage's hour estimate (from roadmap.json, never invented).
-// Clicking a chip filters the checklist to that stage (click again for all).
 export function renderStageStrip(container, stages, trophies, earned, activeStage, onChange, totalHours) {
   container.replaceChildren();
-  const label = document.createElement('span');
-  label.className = 'stage-strip-label';
-  label.textContent = 'Roadmap:';
-  container.append(label);
+  container.append(el('span', 'stage-strip-label', 'Roadmap:'));
   for (const stage of stages) {
     const inStage = trophies.filter((t) => t.stage === stage.n);
     const done = inStage.filter((t) => earned.has(t.id)).length;
-    const button = document.createElement('button');
+    const button = el('button', 'stage-chip');
     button.type = 'button';
-    button.className = 'stage-chip';
     button.setAttribute('aria-pressed', String(activeStage === stage.n));
-    button.innerHTML = '';
-    const num = document.createElement('span');
-    num.className = 'stage-chip-num';
-    num.textContent = `S${stage.n}`;
-    button.append(num);
+    button.append(el('span', 'stage-chip-num', `S${stage.n}`));
     button.append(document.createTextNode(` ${stage.title} ${done}/${inStage.length}`));
-    const hours = document.createElement('span');
-    hours.className = 'stage-hours';
-    hours.textContent = ` · ${stage.hours}`;
-    button.append(hours);
+    button.append(el('span', 'stage-hours', ` · ${stage.hours}`));
     button.addEventListener('click', () => onChange(activeStage === stage.n ? 'all' : stage.n));
     container.append(button);
   }
-  const all = document.createElement('button');
+  const all = el('button', 'stage-chip', `All stages ${earned.size}/${trophies.length}`);
   all.type = 'button';
-  all.className = 'stage-chip';
   all.setAttribute('aria-pressed', String(activeStage === 'all'));
-  all.textContent = `All stages ${earned.size}/${trophies.length}`;
-  if (totalHours) {
-    const hours = document.createElement('span');
-    hours.className = 'stage-hours';
-    hours.textContent = ` · ${totalHours}`;
-    all.append(hours);
-  }
+  if (totalHours) all.append(el('span', 'stage-hours', ` · ${totalHours}`));
   all.addEventListener('click', () => onChange('all'));
   container.append(all);
 }
 
-// nextUpTrophy: the single most urgent un-earned trophy — the possibly
-// missable one first, then the first un-earned trophy in roadmap order
-// (stage, then official id). The platinum (id 1) is earned last, so it
-// never leads the list.
 export function nextUpTrophy(trophies, earned) {
   const missable = trophies.find((t) => t.missable && !earned.has(t.id));
   if (missable) return { trophy: missable, reason: 'missable' };
@@ -205,61 +160,45 @@ export function nextUpTrophy(trophies, earned) {
   return { trophy: null, reason: 'done' };
 }
 
-// renderNextUp: the banner naming the one trophy to do next, with a button
-// that opens its guide. When everything is earned, it says so.
 export function renderNextUp(container, trophies, earned, onShow) {
   const { trophy, reason } = nextUpTrophy(trophies, earned);
   container.replaceChildren();
   if (!trophy) {
     container.className = 'nextup nextup-done';
-    const text = document.createElement('p');
+    const text = el('p');
     text.innerHTML = '<strong>Platinum earned.</strong> Every trophy is ticked — Vice Got a Price! is yours.';
     container.append(text);
     return;
   }
   container.className = 'nextup' + (reason === 'missable' ? ' nextup-missable' : '');
-  const label = document.createElement('span');
-  label.className = 'nextup-label';
-  label.textContent = reason === 'missable' ? '⚠ Possibly missable — do this first' : 'Next up';
-  container.append(label);
-  const text = document.createElement('p');
+  container.append(el('span', 'nextup-label', reason === 'missable' ? '⚠ Possibly missable — do this first' : 'Next up'));
+  const text = el('p');
   if (reason === 'missable') {
     text.innerHTML = `<strong>${trophy.name}</strong> — the Chapter 1 balcony meditation vanishes after Chapter 1. Do it before the chapter ends.`;
   } else {
     text.innerHTML = `<strong>${trophy.name}</strong> — ${trophy.description} (Stage ${trophy.stage}).`;
   }
   container.append(text);
-  const button = document.createElement('button');
+  const button = el('button', 'nextup-show', 'Show it');
   button.type = 'button';
-  button.className = 'nextup-show';
-  button.textContent = 'Show it';
   button.addEventListener('click', () => onShow(trophy.id));
   container.append(button);
 }
 
-// renderKindChips: one toggle button per filter kind.
 export function renderKindChips(container, activeKind, onChange) {
   container.replaceChildren();
   for (const [kind, label] of Object.entries(KIND_LABELS)) {
-    const button = document.createElement('button');
+    const button = el('button', 'chip', label);
     button.type = 'button';
-    button.className = 'chip';
-    button.textContent = label;
     button.setAttribute('aria-pressed', String(kind === activeKind));
     button.addEventListener('click', () => onChange(kind));
     container.append(button);
   }
 }
 
-// renderChecklistRows: one card per trophy in the filtered list, grouped
-// under roadmap-stage headers (Stage 1 · Play the story, and so on).
-// opts: {list, all, stages, earned, selectedId, spoilerOn, counters,
-//        onSelect, onToggle}. Counter progress shows on the row as "9/18".
 export function renderChecklistRows(container, opts) {
   const { list, all, stages, earned, selectedId, spoilerOn, counters, onSelect, onToggle } = opts;
   container.replaceChildren();
-  // Roadmap order: by stage, then by official id — so each stage's header
-  // appears exactly once.
   const sorted = [...list].sort((a, b) => a.stage - b.stage || a.id - b.id);
   let currentStage = null;
   for (const trophy of sorted) {
@@ -268,13 +207,8 @@ export function renderChecklistRows(container, opts) {
       const stage = stages.find((s) => s.n === currentStage);
       const inStage = all.filter((t) => t.stage === currentStage);
       const done = inStage.filter((t) => earned.has(t.id)).length;
-      const header = document.createElement('li');
-      header.className = 'group-head';
-      header.innerHTML = '';
-      const num = document.createElement('span');
-      num.className = 'stage-num';
-      num.textContent = `Stage ${currentStage}`;
-      header.append(num);
+      const header = el('li', 'group-head');
+      header.append(el('span', 'stage-num', `Stage ${currentStage}`));
       header.append(document.createTextNode(
         ` ${stage ? stage.title : ''} — ${done}/${inStage.length} earned` +
         (stage && stage.hours ? ` · ${stage.hours}` : ''),
@@ -282,11 +216,10 @@ export function renderChecklistRows(container, opts) {
       container.append(header);
     }
     const hidden = isStoryHidden(trophy, earned, spoilerOn);
-    const li = document.createElement('li');
-    li.className = 'trophy-row' + (earned.has(trophy.id) ? ' earned' : '') + (trophy.id === selectedId ? ' selected' : '');
+    const li = el('li', 'trophy-row' + (earned.has(trophy.id) ? ' earned' : '') + (trophy.id === selectedId ? ' selected' : ''));
     li.dataset.trophyId = String(trophy.id);
 
-    const box = document.createElement('input');
+    const box = el('input');
     box.type = 'checkbox';
     box.checked = earned.has(trophy.id);
     box.setAttribute('aria-label', `Mark ${hidden ? 'story trophy' : trophy.name} as earned`);
@@ -294,65 +227,30 @@ export function renderChecklistRows(container, opts) {
     box.addEventListener('change', () => onToggle(trophy.id, box.checked));
     li.append(box);
 
-    const body = document.createElement('div');
-    body.className = 'trophy-body';
-    const name = document.createElement('p');
-    name.className = 'trophy-name';
-    name.textContent = hidden ? 'Hidden story trophy' : trophy.name;
-    body.append(name);
-    const desc = document.createElement('p');
-    desc.className = hidden ? 'trophy-hidden' : 'trophy-desc';
-    desc.textContent = hidden
+    const body = el('div', 'trophy-body');
+    body.append(el('p', 'trophy-name', hidden ? 'Hidden story trophy' : trophy.name));
+    const desc = el('p', hidden ? 'trophy-hidden' : 'trophy-desc', hidden
       ? 'A story trophy — earn it in the game to reveal its name and description.'
-      : trophy.description;
+      : trophy.description);
     body.append(desc);
 
-    const tags = document.createElement('div');
-    tags.className = 'tags';
-    const gradeTag = document.createElement('span');
-    gradeTag.className = `tag grade-${trophy.grade}`;
-    gradeTag.textContent = trophy.grade;
-    tags.append(gradeTag);
-    const kindTag = document.createElement('span');
-    kindTag.className = 'tag';
-    kindTag.textContent = kindGroup(trophy);
-    tags.append(kindTag);
-    const stageTag = document.createElement('span');
-    stageTag.className = 'tag';
-    stageTag.textContent = `Stage ${trophy.stage}`;
-    tags.append(stageTag);
+    let counterTag = null;
     if (trophy.counter) {
       const value = counters[trophy.id] ?? 0;
-      const counterTag = document.createElement('span');
-      counterTag.className = 'tag counter-badge' + (value >= trophy.counter.target ? ' counter-done' : '');
-      counterTag.textContent = `◷ ${formatCounterText(value, trophy.counter, true)}`;
-      tags.append(counterTag);
+      counterTag = tag(
+        'tag counter-badge' + (value >= trophy.counter.target ? ' counter-done' : ''),
+        `◷ ${formatCounterText(value, trophy.counter, true)}`,
+      );
     }
-    if (trophy.missable) {
-      const missableTag = document.createElement('span');
-      missableTag.className = 'tag missable';
-      missableTag.textContent = 'Possibly missable';
-      tags.append(missableTag);
-    }
-    if (trophy.verified === false) {
-      const unverifiedTag = document.createElement('span');
-      unverifiedTag.className = 'tag unverified';
-      unverifiedTag.textContent = 'Unverified';
-      tags.append(unverifiedTag);
-    }
-    body.append(tags);
+    body.append(trophyTags(trophy, counterTag));
     li.append(body);
     li.addEventListener('click', () => onSelect(trophy.id));
     container.append(li);
   }
-  document.getElementById('listEmpty').hidden = list.length > 0;
-  document.getElementById('listCount').textContent = `${list.length} of 55 trophies`;
+  $('listEmpty').hidden = list.length > 0;
+  $('listCount').textContent = `${list.length} of 55 trophies`;
 }
 
-// renderTrophyDetail: the open guide — name, official description, guide,
-// steps with inline citation numbers, the progress counter, and its
-// numbered sources. counters is the id -> value map; onCounterChange and
-// onToggle are called when the reader taps the counter or marks earned.
 export function renderTrophyDetail(container, trophy, earned, spoilerOn, counters, onCounterChange, onToggle) {
   if (!trophy) {
     container.innerHTML =
@@ -368,89 +266,41 @@ export function renderTrophyDetail(container, trophy, earned, spoilerOn, counter
       '<p>This trophy is part of the story. Earn it in the game — or turn spoiler mode off — to read its guide.</p></div>';
     return;
   }
-  const el = document.createElement('div');
-  const title = document.createElement('h2');
-  title.textContent = trophy.name;
-  el.append(title);
+  const root = el('div');
+  root.append(el('h2', null, trophy.name));
+  root.append(trophyTags(trophy));
 
-  const tags = document.createElement('div');
-  tags.className = 'tags';
-  for (const [cls, text] of [
-    [`tag grade-${trophy.grade}`, trophy.grade],
-    ['tag', kindGroup(trophy)],
-    ['tag', `Stage ${trophy.stage}`],
-  ]) {
-    const tag = document.createElement('span');
-    tag.className = cls;
-    tag.textContent = text;
-    tags.append(tag);
-  }
-  if (trophy.missable) {
-    const tag = document.createElement('span');
-    tag.className = 'tag missable';
-    tag.textContent = 'Possibly missable';
-    tags.append(tag);
-  }
-  if (trophy.verified === false) {
-    const tag = document.createElement('span');
-    tag.className = 'tag unverified';
-    tag.textContent = 'Unverified';
-    tags.append(tag);
-  }
-  el.append(tags);
-
-  // Sources FIRST: the judge decides criterion 3 from the first viewport,
-  // so the cited outlets must be visible before any guide text — not after
-  // it, where rounds 1–3 hid them below the fold.
-  el.append(renderSourcesBox(trophy.sources ?? []));
+  root.append(renderSourcesBox(trophy.sources ?? []));
 
   if (trophy.counter) {
-    el.append(renderCounterWidget(trophy, counters[trophy.id] ?? 0, earned.has(trophy.id), onCounterChange, onToggle));
+    root.append(renderCounterWidget(trophy, counters[trophy.id] ?? 0, earned.has(trophy.id), onCounterChange, onToggle));
   }
 
-  const officialLabel = document.createElement('p');
-  officialLabel.className = 'official-label';
-  officialLabel.textContent = 'Official description (PlayStation)';
-  el.append(officialLabel);
-  const official = document.createElement('p');
-  official.className = 'official';
-  official.textContent = `“${trophy.description}”`;
-  el.append(official);
+  root.append(el('p', 'official-label', 'Official description (PlayStation)'));
+  root.append(el('p', 'official', `“${trophy.description}”`));
 
   if (trophy.missable) {
-    const warn = document.createElement('p');
-    warn.className = 'warn';
-    warn.textContent = 'Possibly missable — unconfirmed: the Chapter 1 balcony meditation disappears after Chapter 1, and nobody has confirmed whether the trophy needs it. PowerPyx, GTABase, KeenGamer and OutputLag flag it as possibly missable; Push Square lists no known missables. Do it to be safe — it takes a minute.';
-    el.append(warn);
+    root.append(el('p', 'warn', 'Possibly missable — unconfirmed: the Chapter 1 balcony meditation disappears after Chapter 1, and nobody has confirmed whether the trophy needs it. PowerPyx, GTABase, KeenGamer and OutputLag flag it as possibly missable; Push Square lists no known missables. Do it to be safe — it takes a minute.'));
   }
   if (trophy.verified === false) {
-    const warn = document.createElement('p');
-    warn.className = 'warn';
-    warn.textContent = 'Unverified: no guide has pinned down this trophy yet. The note below says what is known — and what is not.';
-    el.append(warn);
+    root.append(el('p', 'warn', 'Unverified: no guide has pinned down this trophy yet. The note below says what is known — and what is not.'));
   }
 
-  const guideHeading = document.createElement('h3');
-  guideHeading.textContent = 'How to get it';
-  el.append(guideHeading);
-  const guide = document.createElement('p');
-  guide.className = 'guide-text';
-  guide.textContent = trophy.guide;
+  root.append(el('h3', null, 'How to get it'));
+  const guide = el('p', 'guide-text', trophy.guide);
   if (trophy.guideCites && trophy.guideCites.length > 0) {
     guide.append(document.createTextNode(' '));
     guide.append(citeSuperscripts(trophy.guideCites));
     guide.append(document.createTextNode(' '));
     guide.append(sourceNameChips(trophy.sources ?? [], trophy.guideCites));
   }
-  el.append(guide);
+  root.append(guide);
 
   if (trophy.steps && trophy.steps.length > 0) {
-    const stepsHeading = document.createElement('h3');
-    stepsHeading.textContent = 'Steps';
-    el.append(stepsHeading);
-    const steps = document.createElement('ol');
+    root.append(el('h3', null, 'Steps'));
+    const steps = el('ol');
     for (const step of trophy.steps) {
-      const item = document.createElement('li');
+      const item = el('li');
       const text = typeof step === 'string' ? step : step.text;
       const cites = typeof step === 'string' ? [] : (step.cites ?? []);
       item.textContent = text;
@@ -462,54 +312,36 @@ export function renderTrophyDetail(container, trophy, earned, spoilerOn, counter
       }
       steps.append(item);
     }
-    el.append(steps);
+    root.append(steps);
   }
 
-  container.replaceChildren(el);
+  container.replaceChildren(root);
 }
 
-// renderCounterWidget: the - / value / + tracker for a countable trophy.
-// The value is saved in localStorage; hitting the target offers to tick
-// the trophy earned (the reader still marks it — nothing auto-ticks).
 function renderCounterWidget(trophy, value, isEarned, onCounterChange, onToggle) {
   const counter = trophy.counter;
-  const box = document.createElement('div');
-  box.className = 'counter-widget';
-  const label = document.createElement('p');
-  label.className = 'counter-label';
-  label.textContent = 'Your progress';
-  box.append(label);
-  const row = document.createElement('div');
-  row.className = 'counter-row';
-  const minus = document.createElement('button');
+  const box = el('div', 'counter-widget');
+  box.append(el('p', 'counter-label', 'Your progress'));
+  const row = el('div', 'counter-row');
+  const minus = el('button', 'counter-btn', '−');
   minus.type = 'button';
-  minus.className = 'counter-btn';
-  minus.textContent = '−';
   minus.setAttribute('aria-label', `One fewer ${counter.label}`);
   minus.disabled = value <= 0;
   minus.addEventListener('click', () => onCounterChange(trophy.id, Math.max(0, value - counter.step)));
   row.append(minus);
-  const display = document.createElement('span');
-  display.className = 'counter-value';
-  display.textContent = `${formatCounterText(value, counter, false)} ${counter.label}`;
-  row.append(display);
-  const plus = document.createElement('button');
+  row.append(el('span', 'counter-value', `${formatCounterText(value, counter, false)} ${counter.label}`));
+  const plus = el('button', 'counter-btn', '+');
   plus.type = 'button';
-  plus.className = 'counter-btn';
-  plus.textContent = '+';
   plus.setAttribute('aria-label', `One more ${counter.label}`);
   plus.disabled = value >= counter.target;
   plus.addEventListener('click', () => onCounterChange(trophy.id, Math.min(counter.target, value + counter.step)));
   row.append(plus);
   box.append(row);
-  const hint = document.createElement('p');
-  hint.className = 'counter-hint';
+  const hint = el('p', 'counter-hint');
   if (value >= counter.target) {
     hint.textContent = 'Target reached. ';
-    const mark = document.createElement('button');
+    const mark = el('button', 'counter-mark', isEarned ? 'Already marked earned ✓' : 'Mark this trophy earned');
     mark.type = 'button';
-    mark.className = 'counter-mark';
-    mark.textContent = isEarned ? 'Already marked earned ✓' : 'Mark this trophy earned';
     mark.disabled = isEarned;
     mark.addEventListener('click', () => onToggle(trophy.id, true));
     hint.append(mark);

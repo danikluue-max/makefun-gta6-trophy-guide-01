@@ -1,109 +1,67 @@
-// The platinum roadmap, the missable watch list and the key facts — the
-// rail beside the checklist. Content comes from app/data/roadmap.json and
-// app/data/trophies.json; this file only turns it into HTML.
+import { el } from './render.js';
 
-// renderPlatinumRoadmap: the three stages, with hours and trophy counts.
 export function renderPlatinumRoadmap(container, roadmap) {
-  const el = document.createElement('div');
-  const heading = document.createElement('h2');
-  heading.textContent = roadmap.title;
-  el.append(heading);
-  const intro = document.createElement('p');
-  intro.textContent =
-    `Difficulty ${roadmap.difficulty} · ${roadmap.hours} · ${roadmap.playthroughs} playthrough · ` +
-    `${roadmap.online}.`;
-  el.append(intro);
+  const root = el('div');
+  root.append(el('h2', null, roadmap.title));
+  root.append(el('p', null, `Difficulty ${roadmap.difficulty} · ${roadmap.hours} · ${roadmap.playthroughs} playthrough · ${roadmap.online}.`));
   for (const stage of roadmap.stages) {
-    const stageHeading = document.createElement('h3');
-    const num = document.createElement('span');
-    num.className = 'stage-num';
-    num.textContent = `Stage ${stage.n}`;
-    stageHeading.append(num);
+    const stageHeading = el('h3');
+    stageHeading.append(el('span', 'stage-num', `Stage ${stage.n}`));
     stageHeading.append(document.createTextNode(stage.title));
-    el.append(stageHeading);
-    const meta = document.createElement('p');
-    meta.className = 'stage-meta';
-    meta.textContent = `${stage.hours} · ${stage.trophyCount} trophies`;
-    el.append(meta);
-    const text = document.createElement('p');
-    text.textContent = stage.text;
-    el.append(text);
-    const list = document.createElement('ul');
+    root.append(stageHeading);
+    root.append(el('p', 'stage-meta', `${stage.hours} · ${stage.trophyCount} trophies`));
+    root.append(el('p', null, stage.text));
+    const list = el('ul');
     for (const bullet of stage.bullets) {
-      const item = document.createElement('li');
-      item.textContent = bullet;
-      list.append(item);
+      list.append(el('li', null, bullet));
     }
-    el.append(list);
+    root.append(list);
   }
-  const checklistHeading = document.createElement('h3');
-  checklistHeading.textContent = 'What 100% completion needs';
-  el.append(checklistHeading);
-  const checklist = document.createElement('ul');
+  root.append(el('h3', null, 'What 100% completion needs'));
+  const checklist = el('ul');
   for (const itemText of roadmap.checklist100) {
-    const item = document.createElement('li');
-    item.textContent = itemText;
-    checklist.append(item);
+    checklist.append(el('li', null, itemText));
   }
-  el.append(checklist);
-  const sources = document.createElement('p');
-  sources.textContent = 'Roadmap sources: ';
+  root.append(checklist);
+  const sources = el('p', null, 'Roadmap sources: ');
   for (const [index, source] of roadmap.checklistSources.entries()) {
     if (index > 0) sources.append(document.createTextNode(' · '));
-    const link = document.createElement('a');
+    const link = el('a');
     link.href = source.url;
     link.textContent = `${source.name} (${source.date})`;
     link.target = '_blank';
     link.rel = 'noopener';
     sources.append(link);
   }
-  el.append(sources);
-  container.replaceChildren(el);
+  root.append(sources);
+  container.replaceChildren(root);
 }
 
-// renderMissableWatchlist: every missable trophy, with its one-line warning.
-// The missable question is genuinely unsettled: PowerPyx, GTABase,
-// KeenGamer and OutputLag flag Positive Mental Attitude as possibly
-// missable, Push Square lists no known missables, and nothing is confirmed
-// either way — the panel says so instead of picking a side.
 export function renderMissableWatchlist(container, trophies, roadmap) {
   const missable = trophies.filter((t) => t.missable);
-  const el = document.createElement('div');
-  const heading = document.createElement('h2');
-  heading.textContent = 'Missable watch list';
-  el.append(heading);
-  const count = document.createElement('p');
+  const root = el('div');
+  root.append(el('h2', null, 'Missable watch list'));
+  const count = el('p');
   count.innerHTML = `<span class="missable-flag">${missable.length} possibly missable</span> — and unconfirmed. Everything else can be done after the story.`;
-  el.append(count);
+  root.append(count);
   for (const trophy of missable) {
-    const name = document.createElement('p');
+    const name = el('p');
     name.innerHTML = `<strong>${trophy.name}</strong> — ${trophy.description}`;
-    el.append(name);
-    const warn = document.createElement('p');
-    warn.textContent =
-      'Chapter 1, after the mission Down to Earth: talk to Lucia in the kitchen in the morning, follow her to the balcony and choose “Accept”. After Chapter 1 the spot is gone for good.';
-    el.append(warn);
+    root.append(name);
+    root.append(el('p', null, 'Chapter 1, after the mission Down to Earth: talk to Lucia in the kitchen in the morning, follow her to the balcony and choose “Accept”. After Chapter 1 the spot is gone for good.'));
   }
-  const note = document.createElement('p');
-  note.className = 'missable-note';
-  note.textContent = roadmap?.missableNote ??
-    'Possibly missable, not confirmed: the Chapter 1 balcony meditation disappears after Chapter 1, and nobody has confirmed whether the trophy needs it.';
-  el.append(note);
-  container.replaceChildren(el);
+  root.append(el('p', 'missable-note', roadmap?.missableNote ??
+    'Possibly missable, not confirmed: the Chapter 1 balcony meditation disappears after Chapter 1, and nobody has confirmed whether the trophy needs it.'));
+  container.replaceChildren(root);
 }
 
-// renderKeyFacts: the facts a hunter checks before starting.
 export function renderKeyFacts(container, roadmap) {
-  const el = document.createElement('div');
-  const heading = document.createElement('h2');
-  heading.textContent = 'Before you start';
-  el.append(heading);
-  const list = document.createElement('ul');
+  const root = el('div');
+  root.append(el('h2', null, 'Before you start'));
+  const list = el('ul');
   for (const fact of roadmap.facts) {
-    const item = document.createElement('li');
-    item.textContent = fact;
-    list.append(item);
+    list.append(el('li', null, fact));
   }
-  el.append(list);
-  container.replaceChildren(el);
+  root.append(list);
+  container.replaceChildren(root);
 }

@@ -1,7 +1,3 @@
-// Leonida Trophy Guide — boot: load the data, wire the controls, render.
-// State lives in state.js, filtering in filters.js, DOM in render.js and
-// roadmap.js. This file only connects them.
-
 import {
   exportProgressFile,
   loadCounterProgress,
@@ -28,6 +24,8 @@ import {
   renderPlatinumRoadmap,
 } from './roadmap.js';
 
+const $ = (id) => document.getElementById(id);
+
 const trophiesDoc = await (await fetch('data/trophies.json')).json();
 const roadmapDoc = await (await fetch('data/roadmap.json')).json();
 const trophies = trophiesDoc.trophies;
@@ -40,8 +38,8 @@ let activeKind = 'all';
 let activeStage = 'all';
 let query = '';
 
-const rowsEl = document.getElementById('rows');
-const detailEl = document.getElementById('detail');
+const rowsEl = $('rows');
+const detailEl = $('detail');
 
 function onCounterChange(id, value) {
   const trophy = trophies.find((t) => t.id === id);
@@ -62,7 +60,7 @@ function renderAll() {
   const filtered = applyChecklistFilters(trophies, {
     query,
     kind: activeKind,
-    grade: document.getElementById('grade').value,
+    grade: $('grade').value,
     stage: activeStage,
     hideEarned: prefs.hideEarned,
     earned,
@@ -70,7 +68,7 @@ function renderAll() {
   renderProgressStats(trophies, earned);
   renderAuditStrip(trophies);
   renderStageStrip(
-    document.getElementById('stageStrip'),
+    $('stageStrip'),
     roadmapDoc.stages,
     trophies,
     earned,
@@ -82,7 +80,7 @@ function renderAll() {
     roadmapDoc.hours,
   );
   renderNextUp(
-    document.getElementById('nextUp'),
+    $('nextUp'),
     trophies,
     earned,
     (id) => {
@@ -109,33 +107,33 @@ function renderAll() {
   renderTrophyDetail(detailEl, selected, earned, prefs.spoiler, counters, onCounterChange, onToggleEarned);
 }
 
-document.getElementById('spoiler').checked = prefs.spoiler;
-document.getElementById('hideEarned').checked = prefs.hideEarned;
-document.getElementById('spoiler').addEventListener('change', (event) => {
+$('spoiler').checked = prefs.spoiler;
+$('hideEarned').checked = prefs.hideEarned;
+$('spoiler').addEventListener('change', (event) => {
   prefs = { ...prefs, spoiler: event.target.checked };
   savePreferences(prefs);
   renderAll();
 });
-document.getElementById('hideEarned').addEventListener('change', (event) => {
+$('hideEarned').addEventListener('change', (event) => {
   prefs = { ...prefs, hideEarned: event.target.checked };
   savePreferences(prefs);
   renderAll();
 });
-document.getElementById('search').addEventListener('input', (event) => {
+$('search').addEventListener('input', (event) => {
   query = event.target.value;
   renderAll();
 });
-document.getElementById('grade').addEventListener('change', renderAll);
+$('grade').addEventListener('change', renderAll);
 function onKindChange(kind) {
   activeKind = kind;
-  renderKindChips(document.getElementById('kindChips'), activeKind, onKindChange);
+  renderKindChips($('kindChips'), activeKind, onKindChange);
   renderAll();
 }
-renderKindChips(document.getElementById('kindChips'), activeKind, onKindChange);
-document.getElementById('export').addEventListener('click', () => {
+renderKindChips($('kindChips'), activeKind, onKindChange);
+$('export').addEventListener('click', () => {
   exportProgressFile(earned, prefs, counters);
 });
-document.getElementById('import').addEventListener('change', async (event) => {
+$('import').addEventListener('change', async (event) => {
   const file = event.target.files[0];
   if (!file) return;
   try {
@@ -144,8 +142,8 @@ document.getElementById('import').addEventListener('change', async (event) => {
     counters = parsed.counters ?? {};
     if (parsed.spoiler !== undefined) prefs.spoiler = parsed.spoiler;
     if (parsed.hideEarned !== undefined) prefs.hideEarned = parsed.hideEarned;
-    document.getElementById('spoiler').checked = prefs.spoiler;
-    document.getElementById('hideEarned').checked = prefs.hideEarned;
+    $('spoiler').checked = prefs.spoiler;
+    $('hideEarned').checked = prefs.hideEarned;
     saveEarnedProgress(earned);
     saveCounterProgress(counters);
     savePreferences(prefs);
@@ -156,7 +154,7 @@ document.getElementById('import').addEventListener('change', async (event) => {
   renderAll();
 });
 
-renderPlatinumRoadmap(document.getElementById('roadmapPanel'), roadmapDoc);
-renderMissableWatchlist(document.getElementById('missablePanel'), trophies, roadmapDoc);
-renderKeyFacts(document.getElementById('factsPanel'), roadmapDoc);
+renderPlatinumRoadmap($('roadmapPanel'), roadmapDoc);
+renderMissableWatchlist($('missablePanel'), trophies, roadmapDoc);
+renderKeyFacts($('factsPanel'), roadmapDoc);
 renderAll();
