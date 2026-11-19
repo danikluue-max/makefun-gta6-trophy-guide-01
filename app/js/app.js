@@ -79,6 +79,7 @@ function renderAll() {
       activeStage = stage;
       renderAll();
     },
+    roadmapDoc.hours,
   );
   renderNextUp(
     document.getElementById('nextUp'),
