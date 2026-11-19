@@ -1,0 +1,98 @@
+{
+ "checklist100": [
+  "100 optional missions",
+  "200 of 277 vehicles scanned",
+  "100 of 255 animals studied",
+  "70 of 80 challenges",
+  "300 stunts",
+  "15 of 18 meditations",
+  "All robberies",
+  "All underwater discoveries",
+  "All shooting ranges",
+  "All drone races",
+  "All 15 target decks",
+  "8 bank jobs",
+  "39 gang operations",
+  "50 of 66 weapons"
+ ],
+ "checklistSources": [
+  {
+   "date": "19 Nov 2026",
+   "name": "PowerPyx — GTA 6 Trophy Guide & Roadmap",
+   "url": "https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/"
+  },
+  {
+   "date": "18 Nov 2026",
+   "name": "GTA Zone — GTA 6 Trophy List",
+   "url": "https://gta-zone.com/news/gta-6-trophies-achievements/"
+  },
+  {
+   "date": "19 Nov 2026",
+   "name": "KeenGamer — GTA 6 Trophy Guide & Platinum Roadmap",
+   "url": "https://www.keengamer.com/articles/guides/gta-6-trophy-guide-platinum-roadmap-all-55-trophies/"
+  },
+  {
+   "date": "18 Nov 2026",
+   "name": "GTABase — GTA 6 Trophy Guide & Achievements List",
+   "url": "https://www.gtabase.com/articles/gta-6/gta-6-achievements-trophies-list-ps5-xbox-series"
+  }
+ ],
+ "difficulty": "4/10",
+ "facts": [
+  "Difficulty 4/10, about 200 hours, 1 playthrough",
+  "No online trophies, no glitched trophies",
+  "1 potentially missable trophy: Positive Mental Attitude — and the guides disagree: PowerPyx, GTABase, KeenGamer and OutputLag flag it as possibly missable, Push Square lists no known missables; nothing is confirmed either way",
+  "Cheats disable trophies and saving",
+  "15 manual save slots + 1 autosave; no mission replay",
+  "Free-roam after the story — nothing else is missable"
+ ],
+ "glitched": "0",
+ "hours": "~200 h",
+ "missableCount": 1,
+ "missableNote": "Possibly missable, not confirmed: the Chapter 1 balcony meditation disappears after Chapter 1, and nobody has confirmed whether the trophy needs it. Flagged possibly missable by PowerPyx, GTABase, KeenGamer and OutputLag; Push Square lists no known missables. Do the balcony meditation to be safe — it takes a minute and removes the risk.",
+ "online": "0 — no online trophies",
+ "playthroughs": 1,
+ "stages": [
+  {
+   "bullets": [
+    "Do optional missions as they appear — any 100 are needed for the checklist",
+    "Scan vehicles with WAiNK and study animals with binoculars as you go",
+    "CHAPTER 1: do Lucia's balcony meditation after Down to Earth — the only possibly missable trophy",
+    "Work the character questlines (Andy, Kenton, Billy, Cal, Bret) as they unlock",
+    "Don't use cheats — they disable trophies and saving"
+   ],
+   "hours": "60–80 h",
+   "n": 1,
+   "text": "Five chapters, 60–80 hours. All 12 story trophies pop automatically. Do the side content as it appears — the 100% checklist counts progress made during the story.",
+   "title": "Play the story",
+   "trophyCount": 17
+  },
+  {
+   "bullets": [
+    "Gold all 42 Shooting Range challenges; win all 42 drone races",
+    "Rob 5 bank vaults, all 8 bank jobs and all 39 gang operations",
+    "Scan 200 vehicles, study 100 animals, WAiNK 100 locations, 15 of 18 meditations",
+    "Finish any 70 of the 80 challenges — skip the hardest 10",
+    "Register 10 vehicles, buy all 8 garages, launder $250,000 in marked bills"
+   ],
+   "hours": "~100 h",
+   "n": 2,
+   "text": "After the credits, open Progress > Stats > 100% Completion and work the list down. The checklist is lenient — about 60% true completion.",
+   "title": "100% completion + cleanup",
+   "trophyCount": 33
+  },
+  {
+   "bullets": [
+    "Complete 8 Strangers & Freaks strands — Kirk, Kyle, Yago and Pilot Pete count",
+    "Do the UFO easter egg (The Truth Is Out There) and the two one-offs (Ocean View Bar, showroom Banshee)",
+    "Check the two unverified trophies — Bad Luck, I Guess and Ten Pin — against the latest community findings"
+   ],
+   "hours": "~10 h",
+   "n": 3,
+   "text": "The final sweep: the stranger strands, the easter eggs and the two trophies the community has not cracked yet.",
+   "title": "Strangers & Freaks + the last two",
+   "trophyCount": 5
+  }
+ ],
+ "title": "Road to the platinum"
+}
