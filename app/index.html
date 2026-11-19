@@ -3,23 +3,75 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GTA VI trophy checklist</title>
+<title>Leonida Trophy Guide — GTA VI, all 55 trophies</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>GTA VI trophy checklist</h1>
-  <p id="progress">0 of 55 earned</p>
+<header class="masthead">
+  <div class="brand">
+    <p class="eyebrow">Grand Theft Auto VI &middot; PlayStation 5 &middot; 55 trophies &middot; 1 platinum &middot; 2 gold &middot; 6 silver &middot; 46 bronze</p>
+    <h1>LEONIDA <span>TROPHY GUIDE</span></h1>
+    <p class="tagline">Every trophy, guided in our own words and cited — checklist, platinum roadmap and the possibly missable trophy, on one page. Fully offline: no network, no account, no ads.</p>
+  </div>
+  <div class="progress-card" aria-label="Your progress">
+    <svg class="ring" viewBox="0 0 120 120" width="108" height="108" role="img" aria-label="Progress ring">
+      <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+      <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"></circle>
+      <text class="ring-text" id="ringPct" x="60" y="66" text-anchor="middle">0%</text>
+    </svg>
+    <div class="progress-lines">
+      <p class="progress-count"><strong id="progressCount">0 / 55</strong> trophies earned</p>
+      <p class="grade-bars" id="gradeBars"></p>
+      <p class="hours-left" id="hoursLeft">&asymp; 200 h left to the platinum (estimate)</p>
+    </div>
+  </div>
 </header>
-<div class="controls">
-  <label>Grade <select id="grade"><option value="all">All</option><option value="platinum">Platinum</option><option value="gold">Gold</option><option value="silver">Silver</option><option value="bronze">Bronze</option></select></label>
+
+<p class="audit" id="auditStrip">Audit: 55/55 named &middot; 55/55 guided &middot; 55/55 cited &middot; 24 progress counters &middot; 6 sources &middot; 1 possibly missable (unconfirmed) &middot; 3 unverified &middot; sources checked 19 Nov 2026</p>
+
+<div class="nextup" id="nextUp" aria-label="What to do next"></div>
+
+<div class="stage-strip" id="stageStrip" role="group" aria-label="Filter by roadmap stage"></div>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="Search a trophy, a place, a mission&hellip;" aria-label="Search trophies">
+  <div class="chips" id="kindChips" role="group" aria-label="Filter by kind"></div>
+  <label class="select-label">Grade
+    <select id="grade">
+      <option value="all">All grades</option>
+      <option value="platinum">Platinum</option>
+      <option value="gold">Gold</option>
+      <option value="silver">Silver</option>
+      <option value="bronze">Bronze</option>
+    </select>
+  </label>
+  <label class="toggle"><input type="checkbox" id="spoiler" checked> <span>Spoiler mode &mdash; hide story trophies until earned</span></label>
+  <label class="toggle"><input type="checkbox" id="hideEarned"> <span>Hide earned</span></label>
   <button id="export" type="button">Export progress</button>
   <label class="import">Import progress <input id="import" type="file" accept="application/json"></label>
 </div>
-<table>
-  <thead><tr><th>Earned</th><th>Trophy</th><th>Grade</th><th>How to get it</th></tr></thead>
-  <tbody id="rows"></tbody>
-</table>
-<script type="module" src="app.js"></script>
+
+<main class="layout">
+  <aside class="rail">
+    <section class="panel missable-panel" id="missablePanel" aria-label="Missable trophy watch"></section>
+    <section class="panel" id="roadmapPanel" aria-label="Road to the platinum"></section>
+    <section class="panel facts-panel" id="factsPanel" aria-label="Key facts"></section>
+  </aside>
+  <section class="checklist">
+    <div class="list-head">
+      <span id="listCount">55 trophies</span>
+      <span class="list-hint">Click a trophy to read its guide &amp; sources</span>
+    </div>
+    <ul id="rows"></ul>
+    <p class="list-empty" id="listEmpty" hidden>No trophy matches these filters.</p>
+  </section>
+  <aside class="detail" id="detail" aria-label="Trophy guide"></aside>
+</main>
+
+<footer>
+  <p>Names and descriptions are shown as PlayStation publishes them. Guides are written in our own words from the cited sources — never copied. Sources: PowerPyx (19 Nov 2026), KeenGamer (19 Nov 2026), OutputLag (19 Nov 2026), GTABase (18 Nov 2026), GTA Zone (18 Nov 2026), Push Square via Exophase (18 Nov 2026). Progress is saved in your browser only.</p>
+</footer>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
